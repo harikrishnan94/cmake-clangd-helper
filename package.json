@@ -5,11 +5,18 @@
 		"Configure clangcflags and clangcxxflags automatically from compile_commands.json using cmake",
 	"version": "0.0.1",
 	"publisher": "Harikrishnan",
+	"license": "MIT",
+	"homepage":
+		"https://github.com/harikrishnan94/cmake-clangd-helper/README.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/harikrishnan94/cmake-clangd-helper.git"
+	},
 	"engines": {
 		"vscode": "^1.18.0"
 	},
 	"categories": ["Other"],
-	"keywords": ["cmake", "clang", "tools", "helper", "build", "c++"],
+	"keywords": ["cmake", "clang", "tools", "build", "c++"],
 	"activationEvents": [
 		"onCommand:cmake.update_clang_flags",
 
