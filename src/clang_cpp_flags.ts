@@ -1,7 +1,6 @@
 "use strict";
 
 import * as vscode from "vscode";
-import { Disposable } from "vscode";
 import * as console from "console";
 import * as fs from "fs";
 
@@ -10,12 +9,15 @@ export class clang_cpp_flags {
 	compileCommandsPath: string;
 	workspaceSettingsPath: string;
 	active: boolean = false;
-	defaultIgnoreFlags: string[] = ["-c", "-o", "-g"];
+	defaultIgnoreFlags: string[] = ["-c", "-o"];
+	clangCFlagsName = "clang.cflags";
+	clangCppFlagsName = "clang.cxxflags";
+	cLanguageStandard = "-std=c11";
+	cppLanguageStandard = "-std=c++1z";
 
 	compileCommands: any;
-	activeSourceFile: string;
-	cppFlagName: string;
-	cppFlags: string[] = [];
+	clangCppFlags: string[] = [];
+	clangCFlags: string[] = [];
 	workspaceSettings: any;
 
 	constructor(compileCommandsPath: string, workspaceSettingsPath: string) {
@@ -26,13 +28,6 @@ export class clang_cpp_flags {
 		this.compileCommandsPath = compileCommandsPath;
 		this.workspaceSettingsPath = workspaceSettingsPath;
 		this.validateEnvironment();
-
-		let subscriptions: Disposable[] = [];
-		vscode.window.onDidChangeActiveTextEditor(
-			this.updateClangCppFlags,
-			this,
-			subscriptions
-		);
 
 		const onChange = () => this.updateClangCppFlags();
 
@@ -66,7 +61,6 @@ export class clang_cpp_flags {
 
 	updateClangCppFlags() {
 		try {
-			this.updateActiveSourceFile();
 			this.updateCompileCommands();
 			this.updateClangCppFlagsInternal();
 		} catch (e) {
@@ -75,23 +69,11 @@ export class clang_cpp_flags {
 	}
 
 	updateCompileCommands() {
-		if (!this.activeSourceFile) {
-			return;
-		}
-
 		const compileCommandsString = fs.readFileSync(
 			this.compileCommandsPath,
 			"utf8"
 		);
 		this.compileCommands = JSON.parse(compileCommandsString);
-	}
-
-	updateActiveSourceFile() {
-		this.activeSourceFile = this.getActiveSourceFile();
-
-		if (!this.isCFile() && !this.isCppFile()) {
-			this.activeSourceFile = undefined;
-		}
 	}
 
 	updateClangCppFlagsInternal() {
@@ -100,57 +82,38 @@ export class clang_cpp_flags {
 		}
 
 		this.updateCppFlags();
-		this.updateClangFlagName();
 		this.updateWorkspaceSettings();
 		this.writeWorkspaceSettings();
 	}
 
 	updateCppFlags() {
-		const compileCommand = this.getCompileCommandForSourceFile(
-			this.activeSourceFile
-		);
 		let cppFlags: string[] = [];
 
-		if (compileCommand != undefined) {
-			compileCommand.split(" ").forEach(compileFlag => {
-				if (this.isFlagRequired(compileFlag)) {
-					cppFlags.push(compileFlag);
+		this.compileCommands.forEach(sourceCompileInfo => {
+			if (sourceCompileInfo != undefined) {
+				let compileCommand = sourceCompileInfo["command"];
+				if (compileCommand != undefined) {
+					compileCommand.split(" ").forEach(compileFlag => {
+						if (this.isFlagRequired(compileFlag)) {
+							cppFlags.push(compileFlag);
+						}
+					});
 				}
-			});
-		}
+			}
+		});
 
-		this.cppFlags = cppFlags;
-	}
+		cppFlags = Array.from(new Set(cppFlags));
 
-	isCppFile() {
-		return (
-			this.activeSourceFile &&
-			(this.activeSourceFile.endsWith(".h") ||
-				this.activeSourceFile.endsWith(".hpp") ||
-				this.activeSourceFile.endsWith(".hxx") ||
-				this.activeSourceFile.endsWith(".cpp") ||
-				this.activeSourceFile.endsWith(".cxx"))
-		);
-	}
+		this.clangCFlags = Array.from(cppFlags);
+		this.clangCppFlags = Array.from(cppFlags);
 
-	isCFile() {
-		return (
-			this.activeSourceFile &&
-			(this.activeSourceFile.endsWith(".h") ||
-				this.activeSourceFile.endsWith(".c"))
-		);
-	}
-
-	updateClangFlagName() {
-		if (this.isCppFile()) {
-			this.cppFlagName = "clang.cxxflags";
-		} else {
-			this.cppFlagName = "clang.cflags";
-		}
+		this.clangCFlags.push(this.cLanguageStandard);
+		this.clangCppFlags.push(this.cppLanguageStandard);
 	}
 
 	updateWorkspaceSettings() {
-		if (!this.cppFlags || !this.cppFlagName) {
+		if (this.clangCFlags.length == 0) {
+			this.workspaceSettings = undefined;
 			return;
 		}
 
@@ -158,32 +121,20 @@ export class clang_cpp_flags {
 			fs.readFileSync(this.workspaceSettingsPath, "utf8")
 		);
 
-		this.workspaceSettings[this.cppFlagName];
-		this.workspaceSettings[this.cppFlagName] = this.cppFlags;
+		delete this.workspaceSettings[this.clangCFlagsName];
+		delete this.workspaceSettings[this.clangCppFlagsName];
+
+		this.workspaceSettings[this.clangCFlagsName] = this.clangCFlags;
+		this.workspaceSettings[this.clangCppFlagsName] = this.clangCppFlags;
 	}
 
 	writeWorkspaceSettings() {
-		fs.writeFileSync(
-			this.workspaceSettingsPath,
-			JSON.stringify(this.workspaceSettings, null, 4)
-		);
-	}
-
-	getCompileCommandForSourceFile(sourceFile: string): string {
-		for (let sourceCompileInfo of this.compileCommands) {
-			if (sourceCompileInfo["file"] === sourceFile) {
-				return sourceCompileInfo["command"];
-			}
+		if (this.workspaceSettings) {
+			fs.writeFileSync(
+				this.workspaceSettingsPath,
+				JSON.stringify(this.workspaceSettings, null, 4)
+			);
 		}
-
-		return undefined;
-	}
-
-	getActiveSourceFile(): string {
-		if (vscode.window.activeTextEditor)
-			return vscode.window.activeTextEditor.document.fileName;
-
-		return undefined;
 	}
 
 	isFlagRequired(compileFlag: string): boolean {
@@ -196,8 +147,15 @@ export class clang_cpp_flags {
 		if (this.isOptimizationFlag(compileFlag)) {
 			return false;
 		}
+		if (this.isLanguageStandardFlag(compileFlag)) {
+			return false;
+		}
 
 		return true;
+	}
+
+	isLanguageStandardFlag(compileFlag: string): boolean {
+		return compileFlag.startsWith("-std=");
 	}
 
 	isOptimizationFlag(compileFlag: string): boolean {
