@@ -1,0 +1,63 @@
+{
+	"name": "cmake-clangd-helper",
+	"displayName": "cmake-clangd-helper",
+	"description":
+		"Configure clangcflags and clangcxxflags automatically from compile_commands.json using cmake",
+	"version": "0.0.1",
+	"publisher": "Harikrishnan",
+	"engines": {
+		"vscode": "^1.18.0"
+	},
+	"categories": ["Other"],
+	"keywords": ["cmake", "clang", "tools", "helper", "build", "c++"],
+	"activationEvents": [
+		"onCommand:cmake.update_clang_flags",
+
+		"workspaceContains:CMakeLists.txt",
+
+		"onCommand:cmake.buildWithTarget",
+		"onCommand:cmake.cleanConfigure",
+		"onCommand:cmake.configure",
+		"onCommand:cmake.setBuildType",
+		"onCommand:cmake.setDefaultTarget"
+	],
+	"main": "./out/extension",
+	"contributes": {
+		"commands": [
+			{
+				"command": "cmake.update_clang_flags",
+				"title": "Update Clang C/C++ Flags",
+				"category": "CMake"
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "Cmake Clang helper configuration",
+			"properties": {
+				"cmake.compile_commands": {
+					"type": "string",
+					"default": "${workspaceRoot}/build/compile_commands.json",
+					"description": "Cmake Compile Commands path"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+	},
+	"devDependencies": {
+		"typescript": "^2.5.3",
+		"vscode": "^1.1.5",
+		"@types/node": "^7.0.43",
+		"@types/mocha": "^2.2.42"
+	},
+	"extensionDependencies": [
+		"mitaki28.vscode-clang",
+		"twxs.cmake",
+		"vector-of-bool.cmake-tools"
+	]
+}
