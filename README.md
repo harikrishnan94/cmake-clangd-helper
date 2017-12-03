@@ -1,65 +1,26 @@
-# cmake-clangd-helper README
+# CMake Clang Helper
 
-This is the README for your extension "cmake-clangd-helper". After writing up a brief description, we recommend including the following sections.
+This extension is similar to
+[vscode-cmake-tools-helper]('https://github.com/maddouri/vscode-cmake-tools-helper').
+It brings the power of following two extensions together.
+
+* [vscode-clang (`mitaki28.vscode-clang`)](https://marketplace.visualstudio.com/items?itemName=mitaki28.vscode-clang)
+	by mitaki28: Provides C and C++ language support (auto-completion and
+	diagnostics)
+* [CMake Tools (`vector-of-bool.cmake-tools`)](https://marketplace.visualstudio.com/items?itemName=vector-of-bool.cmake-tools)
+	by vector-of-bool: Provides support for CMake-based projects (configure,
+	build, etc.)
+
+**CMake Clang Helper** enables vscode-clang to **automatically** know the
+information parsed by CMake Tools (such as **include directories** and
+**defines**) and use it to provide auto-completion and diagnostics.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+* Automatically updates clang.cxxflags in `settings.json` with the current CMake
+	target's information (**include directories** and **defines**)
 
-For example if there is an image subfolder under your extension project workspace:
+## Prerequisites
 
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on OSX or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on OSX or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (OSX) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+* `cmake.compile_commands.json` set to `compile_commands.json` path.
+* `cmake-tools`
