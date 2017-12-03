@@ -65,9 +65,13 @@ export class clang_cpp_flags {
 	}
 
 	updateClangCppFlags() {
-		this.updateActiveSourceFile();
-		this.updateCompileCommands();
-		this.updateClangCppFlagsInternal();
+		try {
+			this.updateActiveSourceFile();
+			this.updateCompileCommands();
+			this.updateClangCppFlagsInternal();
+		} catch (e) {
+			console.log(e);
+		}
 	}
 
 	updateCompileCommands() {
