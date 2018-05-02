@@ -22,5 +22,5 @@ information parsed by CMake Tools (such as **include directories** and
 
 ## Prerequisites
 
-* `cmake.compile_commands.json` set to `compile_commands.json` path.
+* `cmake.compile_commands` set to `compile_commands.json` path.
 * `cmake-tools`

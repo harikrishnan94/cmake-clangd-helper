@@ -2,7 +2,7 @@
     "name": "cmake-clangd-helper",
     "displayName": "cmake-clangd-helper",
     "description": "Configure clangcflags and clangcxxflags automatically from compile_commands.json using cmake",
-    "version": "0.1.0",
+    "version": "0.3.0",
     "publisher": "Harikrishnan",
     "license": "MIT",
     "homepage": "https://github.com/harikrishnan94/cmake-clangd-helper/README.md",

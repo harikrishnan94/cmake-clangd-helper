@@ -117,9 +117,13 @@ export class clang_cpp_flags {
 			return;
 		}
 
-		this.workspaceSettings = JSON.parse(
-			fs.readFileSync(this.workspaceSettingsPath, "utf8")
-		);
+		let origWorkspaceSettings = fs.readFileSync(this.workspaceSettingsPath, 'utf8');
+
+		if (origWorkspaceSettings.length != 0) {
+			this.workspaceSettings = JSON.parse(origWorkspaceSettings);
+		} else {
+			this.workspaceSettings = JSON.parse('{}');
+		}
 
 		delete this.workspaceSettings[this.clangCFlagsName];
 		delete this.workspaceSettings[this.clangCppFlagsName];
