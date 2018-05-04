@@ -27,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand(
 		"cmake.update_clang_flags",
 		() => {
-			clangCppFlagsUpdater.updateClangCppFlags();
+			clangCppFlagsUpdater.updateClangCompilerFlags();
 		}
 	);
 

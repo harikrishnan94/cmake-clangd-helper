@@ -4,19 +4,18 @@ import * as vscode from "vscode";
 import * as console from "console";
 import * as fs from "fs";
 
+import { CmakeCompileCmd } from './cmakecompilecmd';
+
 export class clang_cpp_flags {
 	cmakeTools = vscode.extensions.getExtension("vector-of-bool.cmake-tools");
 	compileCommandsPath: string;
 	workspaceSettingsPath: string;
 	active: boolean = false;
-	defaultIgnoreFlags: string[] = ["-c", "-o"];
 	clangCFlagsName = "clang.cflags";
-	clangCppFlagsName = "clang.cxxflags";
-	cLanguageStandard = "-std=c11";
-	cppLanguageStandard = "-std=c++1z";
+	clangCxxFlagsName = "clang.cxxflags";
 
 	compileCommands: any;
-	clangCppFlags: string[] = [];
+	clangCxxFlags: string[] = [];
 	clangCFlags: string[] = [];
 	workspaceSettings: any;
 
@@ -29,7 +28,7 @@ export class clang_cpp_flags {
 		this.workspaceSettingsPath = workspaceSettingsPath;
 		this.validateEnvironment();
 
-		const onChange = () => this.updateClangCppFlags();
+		const onChange = () => this.updateClangCompilerFlags();
 
 		// update on build config change
 		this.cmakeTools.exports.reconfigured(() => {
@@ -59,10 +58,10 @@ export class clang_cpp_flags {
 		return this.active;
 	}
 
-	updateClangCppFlags() {
+	updateClangCompilerFlags() {
 		try {
 			this.updateCompileCommands();
-			this.updateClangCppFlagsInternal();
+			this.updateClangCompilerFlagsInternal();
 		} catch (e) {
 			console.log(e);
 		}
@@ -76,43 +75,43 @@ export class clang_cpp_flags {
 		this.compileCommands = JSON.parse(compileCommandsString);
 	}
 
-	updateClangCppFlagsInternal() {
+	updateClangCompilerFlagsInternal() {
 		if (!this.compileCommands) {
 			return;
 		}
 
-		this.updateCppFlags();
+		this.updateLangFlags();
 		this.updateWorkspaceSettings();
 		this.writeWorkspaceSettings();
 	}
 
-	updateCppFlags() {
-		let cppFlags: string[] = [];
+	updateLangFlags() {
+		let parsedCmds : CmakeCompileCmd[] = this.compileCommands.map(
+			(aCmakeCmd : string) : CmakeCompileCmd => {
+				return new CmakeCompileCmd(aCmakeCmd);
+			}
+		);
+		let cFlagsSet = new Set();
+		let cxxFlagsSet = new Set();
 
-		this.compileCommands.forEach(sourceCompileInfo => {
-			if (sourceCompileInfo != undefined) {
-				let compileCommand = sourceCompileInfo["command"];
-				if (compileCommand != undefined) {
-					compileCommand.split(" ").forEach(compileFlag => {
-						if (this.isFlagRequired(compileFlag)) {
-							cppFlags.push(compileFlag);
-						}
-					});
+		parsedCmds.forEach(
+			(aParsedCmd : CmakeCompileCmd) : void => {
+				if (aParsedCmd.language === CmakeCompileCmd.LANG_C) {
+					aParsedCmd.cppFlags.forEach(aFlag => cFlagsSet.add(aFlag));
+					aParsedCmd.cFlags.forEach(aFlag => cFlagsSet.add(aFlag));
+				} else if (aParsedCmd.language === CmakeCompileCmd.LANG_CXX) {
+					aParsedCmd.cppFlags.forEach(aFlag => cxxFlagsSet.add(aFlag));
+					aParsedCmd.cxxFlags.forEach(aFlag => cxxFlagsSet.add(aFlag));
 				}
 			}
-		});
+		);
 
-		cppFlags = Array.from(new Set(cppFlags));
-
-		this.clangCFlags = Array.from(cppFlags);
-		this.clangCppFlags = Array.from(cppFlags);
-
-		this.clangCFlags.push(this.cLanguageStandard);
-		this.clangCppFlags.push(this.cppLanguageStandard);
+		this.clangCFlags = Array.from(cFlagsSet);
+		this.clangCxxFlags = Array.from(cxxFlagsSet);
 	}
 
 	updateWorkspaceSettings() {
-		if (this.clangCFlags.length == 0) {
+		if (!this.clangCFlags.length && !this.clangCxxFlags.length) {
 			this.workspaceSettings = undefined;
 			return;
 		}
@@ -120,16 +119,21 @@ export class clang_cpp_flags {
 		let origWorkspaceSettings = fs.readFileSync(this.workspaceSettingsPath, 'utf8');
 
 		if (origWorkspaceSettings.length != 0) {
-			this.workspaceSettings = JSON.parse(origWorkspaceSettings);
+			try {
+				this.workspaceSettings = JSON.parse(origWorkspaceSettings);
+			} catch (ex) {
+				console.warn("Could not read settings.json. Not updating.");
+				this.workspaceSettings = undefined;
+			}
 		} else {
 			this.workspaceSettings = JSON.parse('{}');
 		}
 
 		delete this.workspaceSettings[this.clangCFlagsName];
-		delete this.workspaceSettings[this.clangCppFlagsName];
+		delete this.workspaceSettings[this.clangCxxFlagsName];
 
 		this.workspaceSettings[this.clangCFlagsName] = this.clangCFlags;
-		this.workspaceSettings[this.clangCppFlagsName] = this.clangCppFlags;
+		this.workspaceSettings[this.clangCxxFlagsName] = this.clangCxxFlags;
 	}
 
 	writeWorkspaceSettings() {
@@ -139,30 +143,5 @@ export class clang_cpp_flags {
 				JSON.stringify(this.workspaceSettings, null, 4)
 			);
 		}
-	}
-
-	isFlagRequired(compileFlag: string): boolean {
-		if (!compileFlag.startsWith("-")) {
-			return false;
-		}
-		if (this.defaultIgnoreFlags.indexOf(compileFlag) > -1) {
-			return false;
-		}
-		if (this.isOptimizationFlag(compileFlag)) {
-			return false;
-		}
-		if (this.isLanguageStandardFlag(compileFlag)) {
-			return false;
-		}
-
-		return true;
-	}
-
-	isLanguageStandardFlag(compileFlag: string): boolean {
-		return compileFlag.startsWith("-std=");
-	}
-
-	isOptimizationFlag(compileFlag: string): boolean {
-		return compileFlag.startsWith("-O");
 	}
 }
