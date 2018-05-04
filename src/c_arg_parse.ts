@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Known C language standards for CLang
+ * Known C language standards supported by CLang
  * 
  * @description These were acquired from the LLVM CLang Github repository at:
  * - `clang/include/clang/Frontend/LangStandards.def`
