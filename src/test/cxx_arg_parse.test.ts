@@ -2,6 +2,11 @@ import * as assert from 'assert';
 
 import { CxxArgInfo, cxxArgParse } from '../cxx_arg_parse';
 
+/**
+ * Test suite for the `cxxArgParse()` function.
+ * 
+ * @author Rolando J. Nieves
+ */
 suite("C++ Compiler Argument Parsing Tests", () => {
     test("Simple with Nothing Harvested", () => {
         let compilerCommandString : string = "g++ -g -O2 -I. -I../src -c -o somefile.o somefile.cpp";

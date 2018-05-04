@@ -4,6 +4,7 @@ import { CmakeCompileCmd } from '../cmakecompilecmd';
 
 /**
  * Test suite for the `CmakeCompileCmd` class.
+ * 
  * @author Rolando J. Nieves
  */
 suite("CmakeCompileCmd Class", () => {

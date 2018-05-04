@@ -2,6 +2,11 @@ import * as assert from 'assert';
 
 import { CArgInfo, cArgParse } from '../c_arg_parse';
 
+/**
+ * Test suite for the `cArgParse()` function.
+ * 
+ * @author Rolando J. Nieves
+ */
 suite("C Compiler Argument Parsing Tests", () => {
     test("Simple with Nothing Harvested", () => {
         let compilerCommandString : string = "gcc -g -O2 -I. -I../src -c -o somefile.o somefile.c";

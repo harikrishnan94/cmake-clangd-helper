@@ -2,6 +2,11 @@ import * as assert from 'assert';
 
 import { CppArgInfo, cppArgParse } from '../cpp_arg_parse';
 
+/**
+ * Test suite for the `cppArgParse()` function.
+ * 
+ * @author Rolando J. Nieves
+ */
 suite("Preprocessor Argument Parsing Tests", () => {
     test("Simple with Nothing Harvested", () => {
         let compilerCommandString : string = "gcc -g -O2 -c -o somefile.o somefile.c";
