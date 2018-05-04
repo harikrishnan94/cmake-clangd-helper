@@ -86,14 +86,22 @@ export class clang_cpp_flags {
 	}
 
 	updateLangFlags() {
+		// Transform each entry in the `compile_commands.json` file into a
+		// `CmakeCompileCmd` instance.
 		let parsedCmds : CmakeCompileCmd[] = this.compileCommands.map(
 			(aCmakeCmd : string) : CmakeCompileCmd => {
 				return new CmakeCompileCmd(aCmakeCmd);
 			}
 		);
+
+		// Instantiate sets that will help eliminate duplicates parsed from
+		// `compile_commands.json`
 		let cFlagsSet = new Set();
 		let cxxFlagsSet = new Set();
 
+		// Based on the best-guess source language detected, populate the
+		// option sets that will eventually be fed back to CLang Adpater
+		// configuration.
 		parsedCmds.forEach(
 			(aParsedCmd : CmakeCompileCmd) : void => {
 				if (aParsedCmd.language === CmakeCompileCmd.LANG_C) {
@@ -106,6 +114,8 @@ export class clang_cpp_flags {
 			}
 		);
 
+		// Extract the result of the deduplication into the fields that will be
+		// written to the CLang Adapter configuration.
 		this.clangCFlags = Array.from(cFlagsSet);
 		this.clangCxxFlags = Array.from(cxxFlagsSet);
 	}

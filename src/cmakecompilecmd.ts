@@ -5,16 +5,75 @@ import { cppArgParse, CppArgInfo } from "./cpp_arg_parse";
 import { cArgParse, CArgInfo } from "./c_arg_parse";
 import { cxxArgParse, CxxArgInfo } from "./cxx_arg_parse";
 
+/**
+ * Class that transforms a CMake `compile_commands` entry.
+ * 
+ * @description The transformation takes as much information as possible from
+ * the CMake `compile_commands` entry, distills only what is required for
+ * the CLang Adapter VSCode extension to work, and makes the distilled
+ * information available via fields.
+ * 
+ * @author Rolando J. Nieves
+ */
 export class CmakeCompileCmd {
+    /**
+     * Symbol used to identify C language entries.
+     */
     public static LANG_C : string = "c";
+    /**
+     * Symbol used to identify C++ language entries.
+     */
     public static LANG_CXX : string = "c++";
+    /**
+     * Symbol used to identify Objective-C language entries.
+     */
     public static LANG_OBJC : string = "objc";
+    /**
+     * Result of best effort source file language.
+     * @description Should only be one of:
+     * - `CmakeCompileCmd.LANG_C`: C source file
+     * - `CmakeCompileCmd.LANG_CXX`: C++ source file
+     * - `CmakeCompileCmd.LANG_OBJC`: Objective-C source file
+     */
     public language : string = null;
+    /**
+     * Pre-processor flags parsed from this `compile_commands` entry.
+     * @description As of this writing, will only contain macro definitions
+     * and standard include path entries.
+     */
     public cppFlags : string [] = [];
+    /**
+     * C compiler flags parsed from this `compile_commands` entry.
+     * @description As of this writing, will only contain language standard
+     * selection, and cross-compilation related flags such as target system
+     * root directory and "target triple" specification.
+     */
     public cFlags : string [] = [];
+    /**
+     * C++ compiler flags parsed from this `compile_commands` entry.
+     * @description As of this writing, will only contain language standard
+     * selection, C++ standard library selection (applicable only to CLang),
+     * and cross-compilation related flags such as target system root
+     * directory and "target triple" specification.
+     */
     public cxxFlags : string [] = [];
+    /**
+     * Objective-C compiler flags parsed from this `compile_commands` entry.
+     * @description None parsed as of this writing.
+     */
     public objcFlags : string [] = [];
 
+    /**
+     * Parse `compile_commands` entry and store information in own fields.
+     * 
+     * @description This constructor expects all the fields produced by CMake
+     * to be present and of the correct type.
+     * 
+     * @param {any} cmakeJsonObj JavaScript object constructed after parsing
+     *        `compile_commands` entry.
+     * 
+     * @throws {Error} If any of the fields are missing or of the wrong type.
+     */
     constructor(
         cmakeJsonObj : any
     ) {
