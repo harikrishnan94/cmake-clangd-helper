@@ -79,6 +79,8 @@ export interface CxxArgInfo {
  * - `-stdlib=<arg>`: C++ standard library. `<arg>` is taken as-is.
  * 
  * @param {string} commandLine Compile command to parse.
+ * 
+ * @author Rolando J. Nieves
  */
 export function cxxArgParse(commandLine : string) : CxxArgInfo {
     let result = {
